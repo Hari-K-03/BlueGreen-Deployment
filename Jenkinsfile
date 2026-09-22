@@ -51,24 +51,22 @@ pipeline {
 
         stage('Switch Traffic to Green') {
             steps {
-                powershell '''
-                @"
-        events {}
-
-        http {
-            upstream app {
-                server host.docker.internal:3002;
-            }
-
-            server {
-                listen 80;
-
-                location / {
-                    proxy_pass http://app;
-                }
-            }
-        }
-        "@ | Set-Content -Path "nginx-green.conf"
+                bat '''
+                echo events {} > nginx-green.conf
+                echo. >> nginx-green.conf
+                echo http { >> nginx-green.conf
+                echo     upstream app { >> nginx-green.conf
+                echo         server host.docker.internal:3002; >> nginx-green.conf
+                echo     } >> nginx-green.conf
+                echo. >> nginx-green.conf
+                echo     server { >> nginx-green.conf
+                echo         listen 80; >> nginx-green.conf
+                echo. >> nginx-green.conf
+                echo         location / { >> nginx-green.conf
+                echo             proxy_pass http://app; >> nginx-green.conf
+                echo         } >> nginx-green.conf
+                echo     } >> nginx-green.conf
+                echo } >> nginx-green.conf
 
                 docker cp nginx-green.conf bluegreen-proxy:/etc/nginx/nginx.conf
                 docker exec bluegreen-proxy nginx -t
@@ -76,6 +74,5 @@ pipeline {
                 '''
             }
         }
-
     }
 }
